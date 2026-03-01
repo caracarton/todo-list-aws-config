@@ -7,7 +7,8 @@ s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-hi3gyjuorxml"
 s3_prefix = "todo-list-aws"
 region = "us-east-1"
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "Stage=\"staging\""
+parameter_overrides = "Stage=\"staging1\""
 
 image_repositories = []
+
 
