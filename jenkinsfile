@@ -1,0 +1,69 @@
+pipeline {
+    agent any
+    environment {
+        BASE_URL = "https://3h13suwjed.execute-api.us-east-1.amazonaws.com/Prod"
+    }
+    stages {
+        stage('Get Code') {
+            steps {
+                git branch: 'develop', url:'https://github.com/caracarton/Caso1.4'
+                sh '''rm -f samconfig.toml
+                   curl -o samconfig.toml https://raw.githubusercontent.com/caracarton/todo-list-aws-config/staging/samconfig.toml
+                   '''
+            }
+        }
+        
+      stage('Static Test') {
+    steps {
+        sh '''
+            flake8 --exit-zero --format=pylint ./src --output-file=flake8.out
+            bandit -r ./src -f json -o bandit.json
+           '''
+    }
+    post {
+        always {
+           recordIssues tools: [
+            flake8(pattern: 'flake8.out'),
+            sarif(pattern: 'bandit.json')
+]
+        }
+    }
+}
+      stage('Deploy') {
+            steps {
+             sh '''
+                sam build
+                sam validate --region us-east-1
+                sam deploy \
+                --config-env staging \
+                --no-confirm-changeset \
+                --no-fail-on-empty-changeset
+                '''
+    }
+}
+      stage('Rest Test') {
+          steps{
+          sh '''pytest test/integration/todoApiTest.py --exitfirst'''
+          }
+      }
+      stage('Promote') {
+              steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'credenciales',
+            usernameVariable: 'GIT_USER',
+            passwordVariable: 'GIT_PASS'
+        )]) {
+            sh '''
+                git config user.name "jenkins"
+                git config user.email "jenkins@ci.local"
+                git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/caracarton/Caso1.4.git
+                git fetch origin master
+                git checkout -B master origin/master
+                git merge origin/develop --no-edit
+                git push origin master
+            '''
+        }
+    }
+}
+      }
+}
