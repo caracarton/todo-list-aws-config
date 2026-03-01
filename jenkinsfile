@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    environment {
+        BASE_URL = "https://ecguzc6kr1.execute-api.us-east-1.amazonaws.com/Prod"
+    }
+    stages {
+        stage('Get Code') {
+            steps {
+                git branch: 'master', url:'https://github.com/caracarton/Caso1.4'
+                sh '''rm -f samconfig.toml
+                   curl -o samconfig.toml https://raw.githubusercontent.com/caracarton/todo-list-aws-config/production/samconfig.toml
+                   '''
+            }
+        }
+      stage('Deploy') {
+            steps {
+             sh '''
+                sam build
+                sam validate --region us-east-1
+                sam deploy \
+                --config-env production \
+                --no-confirm-changeset \
+                --no-fail-on-empty-changeset
+                '''
+    }
+}
+      stage('Rest Test') {
+          steps{
+          sh '''pytest test/integration/todoApiTest.py::TestApi::test_api_listtodos \
+                test/integration/todoApiTest.py::TestApi::test_api_gettodo \
+                --exitfirst
+             '''
+          }
+      }
+      }
+}
