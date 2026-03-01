@@ -10,5 +10,3 @@ capabilities = "CAPABILITY_IAM"
 parameter_overrides = "Stage=\"staging1\""
 
 image_repositories = []
-
-
