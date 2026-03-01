@@ -1,7 +1,7 @@
 version = 0.1
 [staging1]
-[staging.deploy]
-[staging.deploy.parameters]
+[staging1.deploy]
+[staging1.deploy.parameters]
 stack_name = "staging1"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-hi3gyjuorxml"
 s3_prefix = "todo-list-aws"
@@ -10,4 +10,5 @@ capabilities = "CAPABILITY_IAM"
 parameter_overrides = "Stage=\"staging1\""
 
 image_repositories = []
+
 
